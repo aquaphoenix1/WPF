@@ -4,16 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using WpfApplication.Elements.MenuElements;
 
 namespace WpfApplication
 {
     static class UIController
     {
-        private static MainWindow mainWindow;
+        public static MainWindow mainWindow { get; private set; }
 
-        public static void DrawLine(Point p1, Point p2)
+        public static void DrawLine(Point p1, Point p2, IElement source, IElement destination, CheckBox SCB, CheckBox DCB)
         {
-            mainWindow.DrawLine(p1, p2);
+            mainWindow.DrawLine(p1, p2, source, destination, SCB, DCB);
         }
 
         internal static void Init(MainWindow mainWindow)

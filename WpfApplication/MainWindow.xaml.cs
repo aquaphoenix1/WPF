@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using WpfApplication.Elements;
 using WpfApplication.Elements.MenuElements;
 
@@ -43,6 +44,11 @@ namespace WpfApplication
             Menu.Children.Add(elem1);
         }
 
+        public Canvas GetMainPanel()
+        {
+            return Scheme;
+        }
+
         private void MenuItemMouseDown(object sender, MouseButtonEventArgs e)
         {
             var elem = (BaseElement)sender;
@@ -54,20 +60,62 @@ namespace WpfApplication
         {
             if (e.Data.GetData(typeof(MenuComputerElement)) is MenuComputerElement)
             {
-                var point = e.GetPosition(this);
+                var point = e.GetPosition(GetMainPanel());
                 Scheme.Children.Add(new ComputerElement(50, 50, ImageController.Open("computer.svg"), SchemeElementMouseDown, point.X - 25, point.Y - 25, 1));
             }
             else if (e.Data.GetData(typeof(MenuRouterElement)) is MenuRouterElement)
             {
-                var point = e.GetPosition(this);
+                var point = e.GetPosition(GetMainPanel());
                 Scheme.Children.Add(new RouterElement(50, 50, ImageController.Open("router.svg"), SchemeElementMouseDown, point.X - 25, point.Y - 25, 8));
             }
             else if (e.Data.GetData(typeof(ComputerElement)) is ComputerElement)
             {
                 var elem = ((ComputerElement)(e.Data.GetData(typeof(ComputerElement))));
-                var point = e.GetPosition(this);
+                var point = e.GetPosition(GetMainPanel());
+                MoveElement(elem, point);
+            }
+            else if (e.Data.GetData(typeof(RouterElement)) is RouterElement)
+            {
+                var elem = ((RouterElement)(e.Data.GetData(typeof(RouterElement))));
+                var point = e.GetPosition(GetMainPanel());
+                MoveElement(elem, point);
+            }
+        }
 
-                elem.SetLocation(point.X - 25, point.Y - 25);
+        private void MoveElement(BaseElement elem, Point point)
+        {
+            elem.SetLocation(point.X, point.Y);
+
+            Scheme.Dispatcher.Invoke(delegate () { return; }, DispatcherPriority.Render);
+
+            foreach (var child in Scheme.Children)
+            {
+                if (child is GraphEdge)
+                {
+                    var c = child as GraphEdge;
+                    if (c.SourceElement == elem)
+                    {
+                        var sourceOffset = c.SourceCB.TransformToAncestor(c.SourceCB.Parent as Canvas).Transform(new Point(0, 0));
+
+                        var sourcePoint = c.SourceCB.TransformToAncestor(GetMainPanel()).Transform(new Point(0, 0));
+
+                        sourcePoint.X += sourceOffset.X;
+                        sourcePoint.Y += sourceOffset.Y;
+
+                        c.Source = sourcePoint;
+                    }
+                    else if (c.DestinationElement == elem)
+                    {
+                        var sourceOffset = c.DestinationCB.TransformToAncestor(c.DestinationCB.Parent as Canvas).Transform(new Point(0, 0));
+
+                        var sourcePoint = c.DestinationCB.TransformToAncestor(GetMainPanel()).Transform(new Point(0, 0));
+
+                        sourcePoint.X += sourceOffset.X;
+                        sourcePoint.Y += sourceOffset.Y;
+
+                        c.Destination = sourcePoint;
+                    }
+                }
             }
         }
 
@@ -81,6 +129,10 @@ namespace WpfApplication
                     {
                         DragDrop.DoDragDrop(sender as ComputerElement, sender as ComputerElement, DragDropEffects.Move);
                     }
+                    else if (sender is RouterElement)
+                    {
+                        DragDrop.DoDragDrop(sender as RouterElement, sender as RouterElement, DragDropEffects.Move);
+                    }
                 }
             }
             else
@@ -89,12 +141,16 @@ namespace WpfApplication
             }
         }
 
-        internal void DrawLine(Point p1, Point p2)
+        internal void DrawLine(Point p1, Point p2, IElement source, IElement destination, CheckBox SCB, CheckBox DCB)
         {
             var edge = new GraphEdge();
+            edge.SourceElement = source;
+            edge.DestinationElement = destination;
             edge.Source = p1;
             edge.Destination = p2;
-            MainGrid.Children.Add(edge);
+            edge.SourceCB = SCB;
+            edge.DestinationCB = DCB;
+            Scheme.Children.Add(edge);
         }
 
         private void Scheme_DragEnter(object sender, DragEventArgs e)

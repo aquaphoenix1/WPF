@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WpfApplication.Elements.MenuElements
 {
-    interface IElement
+    public interface IElement
     {
     }
 }

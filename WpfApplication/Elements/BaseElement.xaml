@@ -9,8 +9,7 @@
         <WrapPanel HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Vertical" Background="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}">
             <Image x:Name="ElementPicture" HorizontalAlignment="Center" Width="0" Height="0"/>
             <Label x:Name="ElementName" Content="Label" VerticalAlignment="Bottom" HorizontalAlignment="Center" Visibility="Collapsed"/>
-            <WrapPanel x:Name="PinsPanel" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Vertical" Background="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}">
-            </WrapPanel>
+            <WrapPanel x:Name="PinsPanel" Background="Red" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Vertical"></WrapPanel>
         </WrapPanel>
     </Canvas>
 </UserControl>

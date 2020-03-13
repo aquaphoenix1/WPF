@@ -42,7 +42,12 @@ namespace WpfApplication.Elements
 
         protected void AddPin(string name)
         {
-            PinsPanel.Children.Add(new PinElement(name));
+            PinsPanel.Children.Add(new PinElement(name, this));
+        }
+
+        public WrapPanel GetPinsPanel()
+        {
+            return PinsPanel;
         }
     }
 }

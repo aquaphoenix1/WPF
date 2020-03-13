@@ -8,11 +8,18 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using WpfApplication.Elements.MenuElements;
 
 namespace WpfApplication.Elements
 {
-    public sealed class GraphEdge : UserControl
+    sealed class GraphEdge : UserControl
     {
+        public IElement SourceElement { get; set; }
+        public IElement DestinationElement { get; set; }
+
+        public CheckBox SourceCB { get; set; }
+        public CheckBox DestinationCB { get; set; }
+
         public static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(Point), typeof(GraphEdge), new FrameworkPropertyMetadata(default(Point)));
         public Point Source { get { return (Point)this.GetValue(SourceProperty); } set { this.SetValue(SourceProperty, value); } }
 
