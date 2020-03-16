@@ -34,6 +34,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Svg2Xaml, Version=0.3.0.5, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Svg2Xaml.0.3.0.5\lib\net40\Svg2Xaml.dll</HintPath>
       <Private>True</Private>
@@ -60,12 +64,24 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ElementsController.cs" />
+    <Compile Include="Elements\BaseElement.cs" />
+    <Compile Include="Elements\Computer.cs" />
+    <Compile Include="Elements\Link.cs" />
+    <Compile Include="Elements\Router.cs" />
+    <Compile Include="Settings.xaml.cs">
+      <DependentUpon>Settings.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UIController.cs" />
-    <Page Include="Elements\BaseElement.xaml">
+    <Page Include="Settings.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Elements\PinElement.xaml">
+    <Page Include="UIElements\BaseUIElement.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UIElements\PinElement.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -77,19 +93,19 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Elements\BaseElement.xaml.cs">
-      <DependentUpon>BaseElement.xaml</DependentUpon>
+    <Compile Include="UIElements\BaseUIElement.xaml.cs">
+      <DependentUpon>BaseUIElement.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Elements\ComputerElement.cs" />
-    <Compile Include="Elements\GraphEdge.cs" />
-    <Compile Include="Elements\IMenuElement.cs" />
-    <Compile Include="Elements\MenuElements\IElement.cs" />
-    <Compile Include="Elements\MenuElements\MenuComputerElement.cs" />
-    <Compile Include="Elements\MenuElements\MenuRouterElement.cs" />
-    <Compile Include="Elements\PinElement.xaml.cs">
+    <Compile Include="UIElements\ComputerElement.cs" />
+    <Compile Include="UIElements\GraphEdge.cs" />
+    <Compile Include="UIElements\MenuElements\IMenuElement.cs" />
+    <Compile Include="UIElements\IElement.cs" />
+    <Compile Include="UIElements\MenuElements\MenuComputerElement.cs" />
+    <Compile Include="UIElements\MenuElements\MenuRouterElement.cs" />
+    <Compile Include="UIElements\PinElement.xaml.cs">
       <DependentUpon>PinElement.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Elements\RouterElement.cs" />
+    <Compile Include="UIElements\RouterElement.cs" />
     <Compile Include="ImageController.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

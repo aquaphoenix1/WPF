@@ -12,7 +12,7 @@ using WpfApplication.Elements.MenuElements;
 
 namespace WpfApplication.Elements
 {
-    sealed class GraphEdge : UserControl
+    public sealed class GraphEdge : UserControl
     {
         public IElement SourceElement { get; set; }
         public IElement DestinationElement { get; set; }

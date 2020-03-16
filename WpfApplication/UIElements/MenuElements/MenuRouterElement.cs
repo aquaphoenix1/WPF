@@ -7,9 +7,9 @@ using System.Windows.Media;
 
 namespace WpfApplication.Elements.MenuElements
 {
-    class MenuComputerElement : BaseElement
+    class MenuRouterElement : BaseUIElement
     {
-        public MenuComputerElement(string name, int width, int height, DrawingImage picture) : base(name, width, height, picture, null)
+        public MenuRouterElement(string name, int width, int height, DrawingImage picture) : base(name, width, height, picture, null, null)
         {
         }
     }

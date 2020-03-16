@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +15,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 using WpfApplication.Elements;
 using WpfApplication.Elements.MenuElements;
 
@@ -44,6 +49,50 @@ namespace WpfApplication
             Menu.Children.Add(elem1);
         }
 
+        internal void RemoveUIElement(BaseUIElement element)
+        {
+            var removedEdges = new List<GraphEdge>();
+
+            foreach (var child in GetMainPanel().Children)
+            {
+                if (child is GraphEdge)
+                {
+                    var c = child as GraphEdge;
+                    if (c.SourceElement.Equals(element) || c.DestinationElement.Equals(element))
+                    {
+                        removedEdges.Add(c);
+                    }
+                }
+            }
+
+            removedEdges.ForEach(RemoveLink);
+
+            GetMainPanel().Children.Remove(element);
+        }
+
+        internal void RemoveLink(GraphEdge edge)
+        {
+            GetMainPanel().Children.Remove(edge);
+        }
+
+        internal bool CheckLines(CheckBox checkBox)
+        {
+            foreach (var child in GetMainPanel().Children)
+            {
+                if (child is GraphEdge)
+                {
+                    var c = child as GraphEdge;
+
+                    if (c.SourceCB.Equals(checkBox) || c.DestinationCB.Equals(checkBox))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         public Canvas GetMainPanel()
         {
             return Scheme;
@@ -51,22 +100,30 @@ namespace WpfApplication
 
         private void MenuItemMouseDown(object sender, MouseButtonEventArgs e)
         {
-            var elem = (BaseElement)sender;
+            var elem = (BaseUIElement)sender;
 
             DragDrop.DoDragDrop(elem, elem, DragDropEffects.Copy);
         }
 
-        private void NewItemDropped(object sender, DragEventArgs e)
+        private void ItemDropped(object sender, DragEventArgs e)
         {
             if (e.Data.GetData(typeof(MenuComputerElement)) is MenuComputerElement)
             {
                 var point = e.GetPosition(GetMainPanel());
-                Scheme.Children.Add(new ComputerElement(50, 50, ImageController.Open("computer.svg"), SchemeElementMouseDown, point.X - 25, point.Y - 25, 1));
+
+                var computer = new Computer(point, ElementsController.GetNextId());
+                ElementsController.AddElement(computer);
+
+                GetMainPanel().Children.Add(new ComputerElement(50, 50, ImageController.Open("computer.svg"), SchemeElementMouseDown, point.X, point.Y, 1, computer));
             }
             else if (e.Data.GetData(typeof(MenuRouterElement)) is MenuRouterElement)
             {
                 var point = e.GetPosition(GetMainPanel());
-                Scheme.Children.Add(new RouterElement(50, 50, ImageController.Open("router.svg"), SchemeElementMouseDown, point.X - 25, point.Y - 25, 8));
+
+                var router = new Router(point, ElementsController.GetNextId());
+                ElementsController.AddElement(router);
+
+                GetMainPanel().Children.Add(new RouterElement(50, 50, ImageController.Open("router.svg"), SchemeElementMouseDown, point.X, point.Y, 8, router));
             }
             else if (e.Data.GetData(typeof(ComputerElement)) is ComputerElement)
             {
@@ -82,13 +139,15 @@ namespace WpfApplication
             }
         }
 
-        private void MoveElement(BaseElement elem, Point point)
+        private void MoveElement(BaseUIElement elem, Point point)
         {
             elem.SetLocation(point.X, point.Y);
 
-            Scheme.Dispatcher.Invoke(delegate () { return; }, DispatcherPriority.Render);
+            ElementsController.ChangeLocation(elem, point);
 
-            foreach (var child in Scheme.Children)
+            GetMainPanel().Dispatcher.Invoke(delegate () { return; }, DispatcherPriority.Render);
+
+            foreach (var child in GetMainPanel().Children)
             {
                 if (child is GraphEdge)
                 {
@@ -125,19 +184,33 @@ namespace WpfApplication
             {
                 if (sender is IElement)
                 {
-                    if (sender is ComputerElement)
+                    if ((Keyboard.Modifiers & ModifierKeys.Control) > 0)
                     {
-                        DragDrop.DoDragDrop(sender as ComputerElement, sender as ComputerElement, DragDropEffects.Move);
+                        (sender as BaseUIElement).TogglePins();
                     }
-                    else if (sender is RouterElement)
+                    else
                     {
-                        DragDrop.DoDragDrop(sender as RouterElement, sender as RouterElement, DragDropEffects.Move);
+                        if (sender is ComputerElement)
+                        {
+                            DragDrop.DoDragDrop(sender as ComputerElement, sender as ComputerElement, DragDropEffects.Move);
+                        }
+                        else if (sender is RouterElement)
+                        {
+                            DragDrop.DoDragDrop(sender as RouterElement, sender as RouterElement, DragDropEffects.Move);
+                        }
                     }
                 }
             }
             else
             {
-
+                if (sender is IElement)
+                {
+                    new Settings(sender as IElement).ShowDialog();
+                }
+                else
+                {
+                    new Settings(sender as GraphEdge).ShowDialog();
+                }
             }
         }
 
@@ -150,7 +223,9 @@ namespace WpfApplication
             edge.Destination = p2;
             edge.SourceCB = SCB;
             edge.DestinationCB = DCB;
-            Scheme.Children.Add(edge);
+            GetMainPanel().Children.Add(edge);
+
+            edge.MouseDown += SchemeElementMouseDown;
         }
 
         private void Scheme_DragEnter(object sender, DragEventArgs e)
@@ -171,6 +246,88 @@ namespace WpfApplication
             {
                 e.Effects = DragDropEffects.None;
             }
+        }
+
+        private void SaveMenuClick(object sender, RoutedEventArgs e)
+        {
+            var elements = ElementsController.Elements;
+            var links = ElementsController.Links;
+
+            var xml = new XElement("DataStore", elements.Select(x => new XElement(x.GetType().ToString(),
+                                                                       new XAttribute("Id", x.Id),
+                                                                       new XAttribute("Name", x.Name),
+                                                                       new XAttribute("Point", x.Point))),
+                                                                       links.Select(x => new XElement("Link",
+                                                                       new XAttribute("Element1", x.Element1.Id),
+                                                                       new XAttribute("Element2", x.Element2.Id),
+                                                                       new XAttribute("FirstPosition", x.FirstPosition),
+                                                                       new XAttribute("SecondPosition", x.SecondPosition),
+                                                                       new XAttribute("Length", x.Length)))
+                                                                       );
+            xml.Save(Directory.GetCurrentDirectory() + "save.txt");
+        }
+
+        private void NewMenuClick(object sender, RoutedEventArgs e)
+        {
+            GetMainPanel().Children.Clear();
+
+            ElementsController.Clear();
+        }
+
+        private void OpenMenuClick(object sender, RoutedEventArgs e)
+        {
+            NewMenuClick(null, null);
+
+            var text = File.ReadAllText(Directory.GetCurrentDirectory() + "save.txt");
+
+            var str = XElement.Parse(text);
+
+            str.Elements().ToList().ForEach(x =>
+            {
+                if (x.Name.ToString().Contains("Computer"))
+                {
+                    var point = x.Attribute("Point");
+                    var val = point.Value.Split(new char[] { ';' });
+                    var id = x.Attribute("Id");
+                    var computer = new Computer(new Point(double.Parse(val[0]), double.Parse(val[1])), (int)id)
+                    {
+                        Name = x.Attribute("Name").ToString()
+                    };
+
+                    ElementsController.AddElement(computer);
+                    GetMainPanel().Children.Add(new ComputerElement(50, 50, ImageController.Open("computer.svg"), SchemeElementMouseDown, computer.Point.X, computer.Point.Y, 1, computer));
+                }
+                else if (x.Name.ToString().Contains("Router"))
+                {
+                    var point = x.Attribute("Point");
+                    var val = point.Value.Split(new char[] { ';' });
+                    var id = x.Attribute("Id");
+                    var router = new Router(new Point(double.Parse(val[0]), double.Parse(val[1])), (int)id)
+                    {
+                        Name = x.Attribute("Name").ToString()
+                    };
+
+                    ElementsController.AddElement(router);
+                    GetMainPanel().Children.Add(new RouterElement(50, 50, ImageController.Open("router.svg"), SchemeElementMouseDown, router.Point.X, router.Point.Y, 8, router));
+                }
+                else
+                {
+                    var length = x.Attribute("Length");
+
+                    var id1 = int.Parse(x.Attribute("Element1").ToString());
+                    var id2 = int.Parse(x.Attribute("Element2").ToString());
+
+                    var fp = int.Parse(x.Attribute("FirstPosition").ToString());
+                    var sp = int.Parse(x.Attribute("SecondPosition").ToString());
+
+                    var s = ElementsController.Elements.First(y => y.Id == id1);
+                    var d = ElementsController.Elements.First(y => y.Id == id2);
+
+                    ElementsController.AddLink(s, d, fp, sp);
+
+                    /*DrawLine(Point p1, Point p2, IElement source, IElement destination, CheckBox SCB, CheckBox DCB)*/  //TODO
+                }
+            });
         }
     }
 }
