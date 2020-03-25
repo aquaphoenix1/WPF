@@ -114,7 +114,7 @@ namespace WpfApplication
                 var computer = new Computer(point, ElementsController.GetNextId());
                 ElementsController.AddElement(computer);
 
-                GetMainPanel().Children.Add(new ComputerElement(50, 50, ImageController.Open("computer.svg"), SchemeElementMouseDown, point.X, point.Y, 1, computer));
+                GetMainPanel().Children.Add(new ComputerElement(MENU_ELEMENT_WIDTH, MENU_ELEMENT_HEIGHT, ImageController.Open("computer.svg"), SchemeElementMouseDown, point.X, point.Y, 1, computer));
             }
             else if (e.Data.GetData(typeof(MenuRouterElement)) is MenuRouterElement)
             {
@@ -123,7 +123,7 @@ namespace WpfApplication
                 var router = new Router(point, ElementsController.GetNextId());
                 ElementsController.AddElement(router);
 
-                GetMainPanel().Children.Add(new RouterElement(50, 50, ImageController.Open("router.svg"), SchemeElementMouseDown, point.X, point.Y, 8, router));
+                GetMainPanel().Children.Add(new RouterElement(MENU_ELEMENT_WIDTH, MENU_ELEMENT_HEIGHT, ImageController.Open("router.svg"), SchemeElementMouseDown, point.X, point.Y, 8, router));
             }
             else if (e.Data.GetData(typeof(ComputerElement)) is ComputerElement)
             {
@@ -298,7 +298,7 @@ namespace WpfApplication
                         };
 
                         ElementsController.AddElement(computer);
-                        GetMainPanel().Children.Add(new ComputerElement(50, 50, ImageController.Open("computer.svg"), SchemeElementMouseDown, computer.Point.X, computer.Point.Y, 1, computer, computer.Name));
+                        GetMainPanel().Children.Add(new ComputerElement(MENU_ELEMENT_WIDTH, MENU_ELEMENT_HEIGHT, ImageController.Open("computer.svg"), SchemeElementMouseDown, computer.Point.X, computer.Point.Y, 1, computer, computer.Name));
                     }
                     else if (x.Name.ToString().Contains("Router"))
                     {
@@ -312,7 +312,7 @@ namespace WpfApplication
                         };
 
                         ElementsController.AddElement(router);
-                        GetMainPanel().Children.Add(new RouterElement(50, 50, ImageController.Open("router.svg"), SchemeElementMouseDown, router.Point.X, router.Point.Y, 8, router, router.Name));
+                        GetMainPanel().Children.Add(new RouterElement(MENU_ELEMENT_WIDTH, MENU_ELEMENT_HEIGHT, ImageController.Open("router.svg"), SchemeElementMouseDown, router.Point.X, router.Point.Y, 8, router, router.Name));
                     }
                     else
                     {
