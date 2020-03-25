@@ -25,9 +25,9 @@ namespace WpfApplication
             Elements.First(x => x.Equals(elem.Element)).Point = point;
         }
 
-        internal static void AddLink(BaseElement element1, BaseElement element2, int firstPosition, int secondPosition)
+        internal static void AddLink(BaseElement element1, BaseElement element2, int firstPosition, int secondPosition, int length = 0)
         {
-            Links.Add(new Link(element1, element2, firstPosition, secondPosition));
+            Links.Add(new Link(element1, element2, firstPosition, secondPosition, length));
         }
 
         internal static void RemoveElement(BaseUIElement element)
@@ -52,7 +52,15 @@ namespace WpfApplication
 
         internal static int GetNextId()
         {
-            return currentId++;
+            return ++currentId;
+        }
+
+        internal static void SetLastId(int id)
+        {
+            if (currentId < id)
+            {
+                currentId = id;
+            }
         }
     }
 }

@@ -16,14 +16,15 @@ namespace WpfApplication.Elements
 
         public int Length { get; set; }
 
-        public Link(BaseElement element1, BaseElement element2, int firstPosition, int secondPosition)
+        public Link(BaseElement element1, BaseElement element2, int firstPosition, int secondPosition, int length)
         {
-            this.Element1 = element1;
-            this.Element2 = element2;
+            Element1 = element1;
+            Element2 = element2;
 
+            FirstPosition = firstPosition;
+            SecondPosition = secondPosition;
 
-            this.FirstPosition = firstPosition;
-            this.SecondPosition = secondPosition;
+            Length = length;
         }
     }
 }

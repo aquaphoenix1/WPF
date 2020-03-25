@@ -21,7 +21,7 @@ namespace WpfApplication.Elements
     /// </summary>
     public partial class PinElement : UserControl
     {
-        private IElement parentElement;
+        public IElement ParentElement { get; private set; }
         public int Number { get; private set; }
 
         public PinElement(string name, BaseUIElement elem, int number)
@@ -30,7 +30,7 @@ namespace WpfApplication.Elements
 
             PinEnterCheckBox.Content = name;
 
-            parentElement = elem as IElement;
+            ParentElement = elem as IElement;
 
             Number = number;
         }
@@ -44,8 +44,8 @@ namespace WpfApplication.Elements
                 var source = elem as CheckBox;
                 var destination = e.Source as CheckBox;
 
-                var p1 = (((destination.Parent as Canvas).Parent) as PinElement).parentElement;
-                var p2 = (((source.Parent as Canvas).Parent) as PinElement).parentElement;
+                var p1 = (((destination.Parent as Canvas).Parent) as PinElement).ParentElement;
+                var p2 = (((source.Parent as Canvas).Parent) as PinElement).ParentElement;
 
                 if (!sender.Equals(elem) && UIController.CheckCheckBox(destination as CheckBox) && !p1.Equals(p2))
                 {
@@ -60,9 +60,9 @@ namespace WpfApplication.Elements
                     destinationPoint.X += destinationOffset.X;
                     destinationPoint.Y += destinationOffset.Y;
 
-                    UIController.DrawLine(destinationPoint, sourcePoint, ((source.Parent as Canvas).Parent as PinElement).parentElement, parentElement, source, destination);
+                    UIController.DrawLine(destinationPoint, sourcePoint, ((source.Parent as Canvas).Parent as PinElement).ParentElement, ParentElement, source, destination);
                     
-                    ElementsController.AddLink((((source.Parent as Canvas).Parent as PinElement).parentElement as BaseUIElement).Element, (((destination.Parent as Canvas).Parent as PinElement).parentElement as BaseUIElement).Element, ((source.Parent as Canvas).Parent as PinElement).Number, ((destination.Parent as Canvas).Parent as PinElement).Number);
+                    ElementsController.AddLink((((source.Parent as Canvas).Parent as PinElement).ParentElement as BaseUIElement).Element, (((destination.Parent as Canvas).Parent as PinElement).ParentElement as BaseUIElement).Element, ((source.Parent as Canvas).Parent as PinElement).Number, ((destination.Parent as Canvas).Parent as PinElement).Number);
                 }
             }
         }
@@ -74,6 +74,11 @@ namespace WpfApplication.Elements
             {
                 DragDrop.DoDragDrop(sender as CheckBox, sender, DragDropEffects.Move);
             }
+        }
+
+        internal CheckBox GetCheckBox()
+        {
+            return PinEnterCheckBox;
         }
     }
 }

@@ -282,52 +282,99 @@ namespace WpfApplication
 
             var str = XElement.Parse(text);
 
-            str.Elements().ToList().ForEach(x =>
+            try
             {
-                if (x.Name.ToString().Contains("Computer"))
+                str.Elements().ToList().ForEach(x =>
                 {
-                    var point = x.Attribute("Point");
-                    var val = point.Value.Split(new char[] { ';' });
-                    var id = x.Attribute("Id");
-                    var computer = new Computer(new Point(double.Parse(val[0]), double.Parse(val[1])), (int)id)
+                    if (x.Name.ToString().Contains("Computer"))
                     {
-                        Name = x.Attribute("Name").ToString()
-                    };
+                        var point = x.Attribute("Point");
+                        var val = point.Value.Split(new char[] { ';' });
+                        var id = x.Attribute("Id").Value;
+                        ElementsController.SetLastId(int.Parse(id));
+                        var computer = new Computer(new Point(double.Parse(val[0]), double.Parse(val[1])), int.Parse(id))
+                        {
+                            Name = x.Attribute("Name").Value
+                        };
 
-                    ElementsController.AddElement(computer);
-                    GetMainPanel().Children.Add(new ComputerElement(50, 50, ImageController.Open("computer.svg"), SchemeElementMouseDown, computer.Point.X, computer.Point.Y, 1, computer));
-                }
-                else if (x.Name.ToString().Contains("Router"))
-                {
-                    var point = x.Attribute("Point");
-                    var val = point.Value.Split(new char[] { ';' });
-                    var id = x.Attribute("Id");
-                    var router = new Router(new Point(double.Parse(val[0]), double.Parse(val[1])), (int)id)
+                        ElementsController.AddElement(computer);
+                        GetMainPanel().Children.Add(new ComputerElement(50, 50, ImageController.Open("computer.svg"), SchemeElementMouseDown, computer.Point.X, computer.Point.Y, 1, computer, computer.Name));
+                    }
+                    else if (x.Name.ToString().Contains("Router"))
                     {
-                        Name = x.Attribute("Name").ToString()
-                    };
+                        var point = x.Attribute("Point");
+                        var val = point.Value.Split(new char[] { ';' });
+                        var id = x.Attribute("Id").Value;
+                        ElementsController.SetLastId(int.Parse(id));
+                        var router = new Router(new Point(double.Parse(val[0]), double.Parse(val[1])), int.Parse(id))
+                        {
+                            Name = x.Attribute("Name").Value
+                        };
 
-                    ElementsController.AddElement(router);
-                    GetMainPanel().Children.Add(new RouterElement(50, 50, ImageController.Open("router.svg"), SchemeElementMouseDown, router.Point.X, router.Point.Y, 8, router));
-                }
-                else
-                {
-                    var length = x.Attribute("Length");
+                        ElementsController.AddElement(router);
+                        GetMainPanel().Children.Add(new RouterElement(50, 50, ImageController.Open("router.svg"), SchemeElementMouseDown, router.Point.X, router.Point.Y, 8, router, router.Name));
+                    }
+                    else
+                    {
+                        var length = int.Parse(x.Attribute("Length").Value);
 
-                    var id1 = int.Parse(x.Attribute("Element1").ToString());
-                    var id2 = int.Parse(x.Attribute("Element2").ToString());
+                        var id1 = int.Parse(x.Attribute("Element1").Value);
+                        var id2 = int.Parse(x.Attribute("Element2").Value);
 
-                    var fp = int.Parse(x.Attribute("FirstPosition").ToString());
-                    var sp = int.Parse(x.Attribute("SecondPosition").ToString());
+                        var fp = int.Parse(x.Attribute("FirstPosition").Value);
+                        var sp = int.Parse(x.Attribute("SecondPosition").Value);
 
-                    var s = ElementsController.Elements.First(y => y.Id == id1);
-                    var d = ElementsController.Elements.First(y => y.Id == id2);
+                        var s = ElementsController.Elements.First(y => y.Id == id1);
+                        var d = ElementsController.Elements.First(y => y.Id == id2);
 
-                    ElementsController.AddLink(s, d, fp, sp);
+                        ElementsController.AddLink(s, d, fp, sp, length);
 
-                    /*DrawLine(Point p1, Point p2, IElement source, IElement destination, CheckBox SCB, CheckBox DCB)*/  //TODO
-                }
-            });
+                        BaseUIElement firstBaseElement = null;
+                        BaseUIElement secondBaseElement = null;
+
+                        for (var i = 0; i < GetMainPanel().Children.Count; i++)
+                        {
+                            if (GetMainPanel().Children[i] is BaseUIElement)
+                            {
+                                var el = GetMainPanel().Children[i] as BaseUIElement;
+                                if (el.Element.Equals(s))
+                                {
+                                    firstBaseElement = el;
+                                }
+                                else if (el.Element.Equals(d))
+                                {
+                                    secondBaseElement = el;
+                                }
+                            }
+                        }
+
+                        var firstPin = firstBaseElement.GetPinByNumber(fp);
+                        var secondPin = secondBaseElement.GetPinByNumber(sp);
+
+                        var source = firstPin.GetCheckBox();
+                        var destination = secondPin.GetCheckBox();
+
+                        var sourceOffset = destination.TransformToAncestor(destination.Parent as Canvas).Transform(new Point(0, 0));
+                        var destinationOffset = source.TransformToAncestor(source.Parent as Canvas).Transform(new Point(0, 0));
+
+                        var sourcePoint = destination.TransformToAncestor(GetMainPanel()).Transform(new Point(0, 0));
+                        sourcePoint.X += sourceOffset.X;
+                        sourcePoint.Y += sourceOffset.Y;
+
+                        var destinationPoint = source.TransformToAncestor(GetMainPanel()).Transform(new Point(0, 0));
+                        destinationPoint.X += destinationOffset.X;
+                        destinationPoint.Y += destinationOffset.Y;
+
+                        DrawLine(destinationPoint, sourcePoint, firstPin.ParentElement, secondPin.ParentElement, source, destination);
+                    }
+
+                    GetMainPanel().Dispatcher.Invoke(delegate () { return; }, DispatcherPriority.Render);
+                });
+            }
+            catch
+            {
+                MessageBox.Show("Ошибка загрузки файла");
+            }
         }
     }
 }

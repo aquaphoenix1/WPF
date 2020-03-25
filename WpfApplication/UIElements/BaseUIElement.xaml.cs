@@ -72,5 +72,23 @@ namespace WpfApplication.Elements
                 PinsPanel.Visibility = System.Windows.Visibility.Visible;
             }
         }
+
+        internal PinElement GetPinByNumber(int number)
+        {
+            foreach(var child in GetPinsPanel().Children)
+            {
+                if(child is PinElement)
+                {
+                    var c = child as PinElement;
+
+                    if(c.Number == number)
+                    {
+                        return c;
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 }
